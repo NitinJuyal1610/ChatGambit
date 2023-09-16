@@ -4,7 +4,7 @@ import { User } from '../../shared/interfaces/chat.interface';
 import { LoginForm } from '../components/login.form';
 import { Rooms } from '../components/rooms';
 import { LoginLayout } from '../layouts/login.layout';
-import { useRoomsQuery } from '../lib/rooms';
+import { useRoomsQuery } from '../lib/room';
 import { generateUserId, getUser, setUser } from '../lib/user';
 
 function Login() {

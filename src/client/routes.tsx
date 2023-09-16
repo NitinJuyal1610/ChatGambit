@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, ReactLocation, Router } from '@tanstack/react-location';
-import Login, { loader as loginLoader } from './layouts/login.layout';
-import Chat, { loader as chatLoader } from './layouts/chat.layout';
+import Login, { loader as loginLoader } from './pages/login';
+import Chat, { loader as chatLoader } from './pages/chat';
 
 const location = new ReactLocation();
 
