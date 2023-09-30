@@ -52,9 +52,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleChatEvent(
     @MessageBody()
     payload: Message,
-  ): Promise<void> {
+  ): Promise<boolean> {
     this.logger.log(payload);
     this.server.to(payload.roomName).emit('chat', payload);
+    return true;
   }
 
   @UseGuards(ChatPoliciesGuard<JoinRoom>, WsThrottlerGuard)
@@ -63,7 +64,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleSetClientDataEvent(
     @MessageBody()
     payload: JoinRoom,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (payload.user.socketId) {
       this.logger.log(
         `${payload.user.socketId} is joining ${payload.roomName}`,
@@ -75,6 +76,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.user.userId,
       );
     }
+
+    return true;
   }
 
   @UseGuards(ChatPoliciesGuard<KickUser>)
