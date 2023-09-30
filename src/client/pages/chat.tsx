@@ -6,6 +6,8 @@ import {
   Message,
   ServerToClientEvents,
   ClientToServerEvents,
+  KickUser,
+  JoinRoom,
 } from '../../shared/interfaces/chat.interface';
 import { Header } from '../components/header';
 import { UserList } from '../components/list';
@@ -17,6 +19,7 @@ import { getUser } from '../lib/user';
 import {
   ChatMessageSchema,
   JoinRoomSchema,
+  KickUserSchema,
 } from '../../shared/schemas/chat.schema';
 
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io({
@@ -32,7 +35,10 @@ function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [toggleUserList, setToggleUserList] = useState<boolean>(false);
 
-  const { data: room } = useRoomQuery(roomName, isConnected);
+  const { data: room, refetch: roomRefetch } = useRoomQuery(
+    roomName,
+    isConnected,
+  );
 
   const navigate = useNavigate();
 
@@ -41,9 +47,10 @@ function Chat() {
       navigate({ to: '/', replace: true });
     } else {
       socket.on('connect', () => {
-        const joinRoom = {
+        const joinRoom: JoinRoom = {
           roomName,
           user: { socketId: socket.id, ...user },
+          eventName: 'join_room',
         };
         JoinRoomSchema.parse(joinRoom);
         socket.emit('join_room', joinRoom);
@@ -58,12 +65,19 @@ function Chat() {
         setMessages((messages) => [e, ...messages]);
       });
 
+      socket.on('kick_user', (e) => {
+        if (e.userToKick.socketId === socket.id) {
+          leaveRoom();
+        }
+      });
+
       socket.connect();
     }
     return () => {
       socket.off('connect');
       socket.off('disconnect');
       socket.off('chat');
+      socket.off('kick_user');
     };
   }, []);
 
@@ -75,7 +89,7 @@ function Chat() {
 
   const sendMessage = (message: string) => {
     if (user && socket && roomName) {
-      const chatMessage = {
+      const chatMessage: Message = {
         user: {
           userId: user.userId,
           userName: user.userName,
@@ -84,11 +98,34 @@ function Chat() {
         timeSent: new Date(Date.now()).toLocaleString('en-US'),
         message,
         roomName: roomName,
+        eventName: 'chat',
       };
       ChatMessageSchema.parse(chatMessage);
       socket.emit('chat', chatMessage);
     }
   };
+
+  const kickUser = (userToKick: User) => {
+    if (!room) {
+      throw 'No room';
+    }
+    if (!user) {
+      throw 'No current user';
+    }
+    const kickUserData: KickUser = {
+      user: { ...user, socketId: socket.id },
+      userToKick: userToKick,
+      roomName: room.name,
+      eventName: 'kick_user',
+    };
+    KickUserSchema.parse(kickUserData);
+    socket.emit('kick_user', kickUserData, (complete) => {
+      if (complete) {
+        roomRefetch();
+      }
+    });
+  };
+
   return (
     <>
       {user?.userId && roomName && room && (
@@ -103,7 +140,11 @@ function Chat() {
             handleLeaveRoom={() => leaveRoom()}
           ></Header>
           {toggleUserList ? (
-            <UserList room={room}></UserList>
+            <UserList
+              room={room}
+              currentUser={{ socketId: socket.id, ...user }}
+              kickHandler={kickUser}
+            ></UserList>
           ) : (
             <Messages user={user} messages={messages}></Messages>
           )}

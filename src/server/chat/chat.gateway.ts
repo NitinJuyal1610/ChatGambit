@@ -6,22 +6,24 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Logger, UsePipes } from '@nestjs/common';
+import { Logger, UseGuards, UsePipes } from '@nestjs/common';
 import {
   ServerToClientEvents,
   ClientToServerEvents,
   Message,
-  User,
+  JoinRoom,
+  KickUser,
 } from '../../shared/interfaces/chat.interface';
 import { Server, Socket } from 'socket.io';
-import { UserService } from '../user/user.service';
+import { RoomService } from '../room/room.service';
 import { ZodValidationPipe } from '../pipes/zod.pipe';
 import {
-  RoomNameSchema,
   ChatMessageSchema,
-  RoomSchema,
   JoinRoomSchema,
-} from 'src/shared/schemas/chat.schema';
+  KickUserSchema,
+} from '../../shared/schemas/chat.schema';
+import { UserService } from '../user/user.service';
+import { ChatPoliciesGuard } from './guards/chat.guard';
 
 @WebSocketGateway({
   cors: {
@@ -29,7 +31,10 @@ import {
   },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private userService: UserService) {}
+  constructor(
+    private roomService: RoomService,
+    private userService: UserService,
+  ) {}
 
   @WebSocketServer() server: Server = new Server<
     ServerToClientEvents,
@@ -38,33 +43,61 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private logger = new Logger('ChatGateway');
 
+  @UseGuards(ChatPoliciesGuard<Message>)
   @UsePipes(new ZodValidationPipe(ChatMessageSchema))
   @SubscribeMessage('chat')
   async handleChatEvent(
     @MessageBody()
     payload: Message,
-  ): Promise<Message> {
+  ): Promise<void> {
     this.logger.log(payload);
-    this.server.to(payload.roomName).emit('chat', payload); // broadcast messages
-    return payload;
+    this.server.to(payload.roomName).emit('chat', payload);
   }
 
+  @UseGuards(ChatPoliciesGuard<JoinRoom>)
   @UsePipes(new ZodValidationPipe(JoinRoomSchema))
   @SubscribeMessage('join_room')
   async handleSetClientDataEvent(
     @MessageBody()
-    payload: {
-      roomName: string;
-      user: User;
-    },
-  ) {
+    payload: JoinRoom,
+  ): Promise<void> {
     if (payload.user.socketId) {
       this.logger.log(
         `${payload.user.socketId} is joining ${payload.roomName}`,
       );
+      await this.userService.addUser(payload.user);
       await this.server.in(payload.user.socketId).socketsJoin(payload.roomName);
-      await this.userService.addUserToRoom(payload.roomName, payload.user);
+      await this.roomService.addUserToRoom(
+        payload.roomName,
+        payload.user.userId,
+      );
     }
+  }
+
+  @UseGuards(ChatPoliciesGuard<KickUser>)
+  @UsePipes(new ZodValidationPipe(KickUserSchema))
+  @SubscribeMessage('kick_user')
+  async handleKickUserEvent(
+    @MessageBody() payload: KickUser,
+  ): Promise<boolean> {
+    this.logger.log(
+      `${payload.userToKick.userName} is getting kicked from ${payload.roomName}`,
+    );
+    await this.server.to(payload.roomName).emit('kick_user', payload);
+    await this.server
+      .in(payload.userToKick.socketId)
+      .socketsLeave(payload.roomName);
+    await this.server.to(payload.roomName).emit('chat', {
+      user: {
+        userId: 'serverId',
+        userName: 'TheServer',
+        socketId: 'ServerSocketId',
+      },
+      timeSent: new Date(Date.now()).toLocaleString('en-US'),
+      message: `${payload.userToKick.userName} was kicked.`,
+      roomName: payload.roomName,
+    });
+    return true;
   }
 
   async handleConnection(socket: Socket): Promise<void> {
@@ -72,7 +105,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(socket: Socket): Promise<void> {
-    await this.userService.removeUserFromAllRooms(socket.id);
+    const user = await this.roomService.getFirstInstanceOfUser(socket.id);
+    if (user) {
+      await this.userService.removeUserById(user.userId);
+    }
+    await this.roomService.removeUserFromAllRooms(socket.id);
     this.logger.log(`Socket disconnected: ${socket.id}`);
   }
 }

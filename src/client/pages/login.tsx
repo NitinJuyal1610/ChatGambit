@@ -5,7 +5,7 @@ import { LoginForm, LoginFormInputs } from '../components/login.form';
 import { Rooms } from '../components/rooms';
 import { LoginLayout } from '../layouts/login.layout';
 import { useRoomsQuery } from '../lib/room';
-import { generateUserId, getUser, setUser } from '../lib/user';
+import { getUser } from '../lib/user';
 
 function Login() {
   const {
