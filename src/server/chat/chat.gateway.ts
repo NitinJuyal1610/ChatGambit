@@ -24,6 +24,8 @@ import {
 } from '../../shared/schemas/chat.schema';
 import { UserService } from '../user/user.service';
 import { ChatPoliciesGuard } from './guards/chat.guard';
+import { WsThrottlerGuard } from './guards/throttler.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @WebSocketGateway({
   cors: {
@@ -43,7 +45,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private logger = new Logger('ChatGateway');
 
-  @UseGuards(ChatPoliciesGuard<Message>)
+  @Throttle({ default: { limit: 10, ttl: 30000 } })
+  @UseGuards(ChatPoliciesGuard<Message>, WsThrottlerGuard)
   @UsePipes(new ZodValidationPipe(ChatMessageSchema))
   @SubscribeMessage('chat')
   async handleChatEvent(
@@ -54,7 +57,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(payload.roomName).emit('chat', payload);
   }
 
-  @UseGuards(ChatPoliciesGuard<JoinRoom>)
+  @UseGuards(ChatPoliciesGuard<JoinRoom>, WsThrottlerGuard)
   @UsePipes(new ZodValidationPipe(JoinRoomSchema))
   @SubscribeMessage('join_room')
   async handleSetClientDataEvent(
