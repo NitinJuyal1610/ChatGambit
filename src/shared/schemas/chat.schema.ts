@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const UserIdSchema = z.string().min(1).max(24);
+export const UserIdSchema = z.string().min(1).max(64);
 
 export const UserNameSchema = z
   .string()

@@ -5,6 +5,7 @@ import { join } from 'path';
 import { RoomModule } from './room/room.module';
 import { CaslModule } from './casl/casl.module';
 import { UserModule } from './user/user.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserModule } from './user/user.module';
     RoomModule,
     CaslModule,
     UserModule,
+    ConfigModule.forRoot(),
   ],
 })
 export class AppModule {}

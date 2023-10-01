@@ -6,7 +6,6 @@ import { Rooms } from '../components/rooms';
 import { LoginLayout } from '../layouts/login.layout';
 import { useRoomsQuery } from '../lib/room';
 import { getUser } from '../lib/user';
-import { LoginHeader } from '../components/login.header';
 
 function Login() {
   const {

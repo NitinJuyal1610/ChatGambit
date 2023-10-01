@@ -6,6 +6,7 @@ import {
   RoomNameSchema,
   UserNameSchema,
   RoomNameSchemaRegex,
+  UserSchema,
 } from '../../shared/schemas/chat.schema';
 import { generateUserId, setUser } from '../lib/user';
 import { User } from '../../shared/interfaces/chat.interface';
@@ -42,6 +43,7 @@ export const LoginForm = ({
       userId: generateUserId(data.userName),
       userName: data.userName,
     };
+
     setUser(newUser);
     onSubmitSecondary(data);
   };

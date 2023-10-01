@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
 import { User } from '../entities/user.entity';
 
 @Injectable()
@@ -31,7 +32,9 @@ export class UserService {
   async removeUserById(userId: User['userId']): Promise<void> {
     const findUserIndex = await this.getUserIndexById(userId);
     if (findUserIndex == -1) {
-      throw 'User does not exist so cannot be removed from the store';
+      throw new ConflictException(
+        'User does not exist so cannot be removed from the store',
+      );
     }
     this.users.splice(findUserIndex, 1);
   }

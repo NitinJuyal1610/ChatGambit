@@ -1,5 +1,5 @@
 import { User } from '../../shared/interfaces/chat.interface';
-
+import { v4 as uuidv4 } from 'uuid';
 export const setUser = ({
   userId,
   userName,
@@ -23,5 +23,5 @@ export const getUser = () => {
 };
 
 export const generateUserId = (userName: User['userName']) => {
-  return Date.now().toLocaleString().concat(userName);
+  return uuidv4().toString();
 };

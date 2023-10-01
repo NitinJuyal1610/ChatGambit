@@ -17,6 +17,7 @@ import {
   User,
 } from '../../../shared/interfaces/chat.interface';
 import { Room } from '../../entities/room.entity';
+import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
 
 @Injectable()
 export class ChatPoliciesGuard<
@@ -41,7 +42,9 @@ export class ChatPoliciesGuard<
 
     if (data.eventName === 'kick_user') {
       if (room === 'Not Exists') {
-        throw `Room must exist to evaluate ${data.eventName} policy`;
+        throw new ConflictException(
+          `Room must exist to evaluate ${data.eventName} policy`,
+        );
       }
       policyHandlers.push((ability) => ability.can(Action.Kick, room));
     }
@@ -52,7 +55,9 @@ export class ChatPoliciesGuard<
 
     if (data.eventName === 'chat') {
       if (room === 'Not Exists') {
-        throw `Room must exist to evaluate ${data.eventName} policy`;
+        throw new ConflictException(
+          `Room must exist to evaluate ${data.eventName} policy`,
+        );
       }
       policyHandlers.push((ability) => ability.can(Action.Message, room));
     }

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Room } from '../entities/room.entity';
 import { User } from '../../shared/interfaces/chat.interface';
 import { UserService } from '../user/user.service';
+import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
+import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 
 @Injectable()
 export class RoomService {
@@ -11,7 +13,9 @@ export class RoomService {
   async addRoom(roomName: Room['name'], hostId: User['userId']): Promise<void> {
     const hostUser = await this.userService.getUserById(hostId);
     if (hostUser === 'Not Exists') {
-      throw 'The host user with which you are attempting to create a new room does not exist';
+      throw new NotFoundException(
+        'The host user with which you are attempting to create a new room does not exist',
+      );
     }
     const room = await this.getRoomIndexByName(roomName);
     if (room === -1) {
@@ -24,7 +28,9 @@ export class RoomService {
   async removeRoom(roomName: Room['name']): Promise<void> {
     const roomIndex = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
-      throw 'The room which you are attempting to remove does not exist';
+      throw new NotFoundException(
+        'The room which you are attempting to remove does not exist',
+      );
     }
     this.rooms.splice(roomIndex, 1);
   }
@@ -54,7 +60,9 @@ export class RoomService {
     const roomIndex = await this.getRoomIndexByName(roomName);
     const newUser = await this.userService.getUserById(userId);
     if (newUser === 'Not Exists') {
-      throw 'The user which you are attempting to add to a room does not exist';
+      throw new NotFoundException(
+        'The user which you are attempting to add to a room does not exist',
+      );
     }
     if (roomIndex !== -1) {
       this.rooms[roomIndex].users.push(newUser);
@@ -80,13 +88,17 @@ export class RoomService {
   async getFirstInstanceOfUser(socketId: User['socketId']): Promise<User> {
     const findRoomsWithUser = await this.getRoomsByUserSocketId(socketId);
     if (findRoomsWithUser.length === 0) {
-      throw 'Cound not find any rooms that contain that user';
+      throw new NotFoundException(
+        'Cound not find any rooms that contain that user',
+      );
     }
     const findUserInRoom = findRoomsWithUser[0].users.find(
       (user) => user.socketId === socketId,
     );
     if (!findUserInRoom) {
-      throw 'could not find user in that room';
+      throw new InternalServerErrorException(
+        'could not find user in that room',
+      );
     }
     return findUserInRoom;
   }
@@ -104,14 +116,18 @@ export class RoomService {
   ): Promise<void> {
     const roomIndex = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
-      throw 'The room which you attempted to remove a user from does not exist';
+      throw new NotFoundException(
+        'The room which you attempted to remove a user from does not exist',
+      );
     }
     const userIndex = await this.getUserIndexFromRoomBySocketId(
       socketId,
       roomIndex,
     );
     if (userIndex === -1) {
-      throw 'The user which you attempted to remove from a room does not exist in that room';
+      throw new InternalServerErrorException(
+        'The user which you attempted to remove from a room does not exist in that room',
+      );
     }
     this.rooms[roomIndex].users.splice(userIndex, 1);
     if (this.rooms[roomIndex].users.length === 0) {

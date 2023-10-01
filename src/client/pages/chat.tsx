@@ -56,7 +56,14 @@ function Chat() {
           user: { socketId: socket.id, ...user },
           eventName: 'join_room',
         };
-        JoinRoomSchema.parse(joinRoom);
+
+        try {
+          JoinRoomSchema.parse(joinRoom);
+        } catch (error) {
+          console.log(error);
+          leaveRoom();
+          return;
+        }
         setTimeout(() => {
           // default required 800 ms minimum join delay to prevent flickering
           setIsJoiningDelay(false);
@@ -118,7 +125,14 @@ function Chat() {
         eventName: 'chat',
       };
       // Check if chat message passes schema check
-      ChatMessageSchema.parse(chatMessage);
+
+      try {
+        ChatMessageSchema.parse(chatMessage);
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+
       // Update state with message "delivered" status to false
       setMessages((messages) => [
         { ...chatMessage, delivered: false },
@@ -166,7 +180,14 @@ function Chat() {
       roomName: room.name,
       eventName: 'kick_user',
     };
-    KickUserSchema.parse(kickUserData);
+
+    try {
+      KickUserSchema.parse(kickUserData);
+    } catch (error) {
+      console.error(error);
+      return;
+    }
+
     socket.emit('kick_user', kickUserData, (complete) => {
       if (complete) {
         roomRefetch();
