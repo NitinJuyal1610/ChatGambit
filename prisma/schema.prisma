@@ -6,3 +6,32 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           Int      @id @default(autoincrement())
+  user_id      String   @unique
+  user_name    String   @unique
+  socket_id    String?
+  chats        Chat[]
+  rooms        Room[]   @relation("UserRooms")
+  hostedRooms  Room[]
+}
+
+model Room {
+  id           Int      @id @default(autoincrement())
+  room_name    String   @unique
+  host         User     @relation(fields: [host_id], references: [id])
+  host_id      Int      // relational scalar
+  chats        Chat[]
+  users        User[]   @relation("UserRooms")
+}
+
+model Chat {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      Int
+  time_sent    DateTime @default(now())
+  message      String
+  room         Room     @relation(fields: [room_name], references: [room_name])
+  room_name    String
+}
