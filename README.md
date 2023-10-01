@@ -1,6 +1,6 @@
 # 🚀 ChatGambit - Scalable and Secure Chat Application
 
-ChatGambit is a modern and scalable chat application built using NestJS, TypeScript, React, websockets, Casl, Zod, and Tailwind. It provides real-time full-duplex communication with a range of features, including user authentication, group creation, rate limiting, and attribute-based authorization.
+ChatGambit is a modern and scalable chat application built using NestJS, TypeScript, React, websockets, Casl, Zod, and Tailwind. It provides real-time full-duplex communication with a range of capabilities, including user authentication, group creation, and advanced security features.
 
 ## 🌟 Features
 
@@ -9,6 +9,8 @@ ChatGambit is a modern and scalable chat application built using NestJS, TypeScr
 - **Group Chat:** 👥 Users can join existing chat groups or create their own, allowing for flexible and organized conversations.
 
 - **Admin Controls:** 👑 Administrators have the ability to kick users from chat groups to maintain order and manage discussions.
+
+## 🔐 Security and Functionality Enhancements
 
 - **Rate Limiting:** ⏳ To prevent abuse, ChatGambit includes rate limiting functionality to control the number of messages sent within a specific time frame.
 
