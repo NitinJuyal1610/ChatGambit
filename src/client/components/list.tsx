@@ -19,7 +19,9 @@ export const UserList = ({
             className="mb-4 flex justify-between rounded px-4 py-2"
           >
             <div className="flex items-center">
-              <p className="text-white">{user.userName}</p>
+              <p className="text-white underline underline-offset-8">
+                {user.userName}
+              </p>
               {room.host.userId === user.userId && (
                 <span className="ml-2">{'👑'}</span>
               )}

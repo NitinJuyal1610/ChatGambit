@@ -6,6 +6,7 @@ import { Rooms } from '../components/rooms';
 import { LoginLayout } from '../layouts/login.layout';
 import { useRoomsQuery } from '../lib/room';
 import { getUser } from '../lib/user';
+import { LoginHeader } from '../components/login.header';
 
 function Login() {
   const {
@@ -34,19 +35,21 @@ function Login() {
   }, []);
 
   return (
-    <LoginLayout>
-      <Rooms
-        rooms={rooms ?? []}
-        selectionHandler={setJoinRoomSelection}
-        selectedRoom={joinRoomSelection}
-        isLoading={roomsLoading}
-      ></Rooms>
-      <LoginForm
-        defaultUser={user?.userName}
-        disableNewRoom={joinRoomSelection !== ''}
-        onSubmitSecondary={handleRoomSelection}
-      ></LoginForm>
-    </LoginLayout>
+    <>
+      <LoginLayout>
+        <Rooms
+          rooms={rooms ?? []}
+          selectionHandler={setJoinRoomSelection}
+          selectedRoom={joinRoomSelection}
+          isLoading={roomsLoading}
+        ></Rooms>
+        <LoginForm
+          defaultUser={user?.userName}
+          disableNewRoom={joinRoomSelection !== ''}
+          onSubmitSecondary={handleRoomSelection}
+        ></LoginForm>
+      </LoginLayout>
+    </>
   );
 }
 

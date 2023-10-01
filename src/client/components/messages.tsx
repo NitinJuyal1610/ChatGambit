@@ -8,12 +8,12 @@ const determineMessageStyle = (
 ) => {
   if (user && messageUserId === user.userId) {
     return {
-      message: 'bg-slate-500 p-4 ml-24 rounded break-words',
+      message: 'bg-slate-500 p-5 ml-24 mr-2 rounded-2xl break-words',
       sender: 'ml-24 pl-4',
     };
   } else {
     return {
-      message: 'bg-slate-800 p-4 mr-24 rounded break-words',
+      message: 'bg-slate-800 p-5 mr-24 rounded-2xl break-words',
       sender: 'mr-24 pl-4',
     };
   }
@@ -41,7 +41,7 @@ export const Messages = ({
               </span>
               <span className="text-sm text-gray-400">{' ' + '•' + ' '}</span>
               <span className="text-sm text-gray-400">
-                {new Date(message.timeSent).toLocaleString()}
+                {new Date(message.timeSent).toLocaleTimeString()}
               </span>
             </div>
             <div
@@ -52,7 +52,7 @@ export const Messages = ({
               <p className="text-white">{message.message}</p>
             </div>
             {user && message.user.userId === user.userId && (
-              <p className="text-right text-xs text-gray-400">
+              <p className="text-right text-xs text-gray-400 px-4">
                 {message.delivered ? 'Delivered' : 'Not delivered'}
               </p>
             )}

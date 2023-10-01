@@ -25,16 +25,16 @@ export const Header = ({
         <div className="flex">
           <button
             onClick={() => handleUsersClick()}
-            className="ml-1 flex h-8 items-center rounded-xl bg-gray-800 px-4"
+            className="ml-1 flex h-8 items-center rounded-4xl bg-gray-800 px-4"
           >
-            <span className="mr-1 text-lg text-white">{'👨‍💻'}</span>
+            <span className="mr-1 text-lg text-white">{'👤'}</span>
             <span className="ml-1 text-white">{users.length}</span>
           </button>
           <button
             onClick={() => handleLeaveRoom()}
-            className="ml-1 flex h-8 items-center rounded-xl bg-gray-800 px-4"
+            className="ml-1 flex h-8 items-center rounded-4xl bg-rose-800 px-4"
           >
-            <span className="mr-1 text-white">{'Leave'}</span>
+            <span className="mr-1 text-white ">{'Leave'}</span>
           </button>
         </div>
       </div>

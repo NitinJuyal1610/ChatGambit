@@ -80,7 +80,7 @@ export const LoginForm = ({
 
         <button
           type="submit"
-          className="flex h-12 w-full items-center justify-center rounded-md bg-violet-700 text-white"
+          className="flex h-12 w-full items-center justify-center rounded-md bg-indigo-600 text-white"
         >
           Join
         </button>
