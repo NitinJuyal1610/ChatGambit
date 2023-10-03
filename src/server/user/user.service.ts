@@ -1,41 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
+import { PrismaService } from '../prisma.service';
+import { User as UserModel } from '@prisma/client';
 import { User } from '../entities/user.entity';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
+  constructor(private prismaService: PrismaService) {}
 
   async addUser(user: User) {
-    const findUser = await this.getUserById(user.userId);
-    if (findUser === 'Not Exists') {
-      const newUser = new User(user);
-      this.users.push(newUser);
+    try {
+      const newUser = await this.prismaService.user.create({
+        data: {
+          user_id: user.userId,
+          user_name: user.userName,
+          socket_id: user.socketId,
+        },
+      });
+      return newUser;
+    } catch (error) {
+      throw new ConflictException('User already exists');
     }
   }
 
-  async getUserById(userId: User['userId']): Promise<User | 'Not Exists'> {
-    const searchForUserIndex = await this.getUserIndexById(userId);
-    if (searchForUserIndex === -1) {
-      return 'Not Exists';
-    }
-    return this.users[searchForUserIndex];
+  async getAllUsers(): Promise<UserModel[]> {
+    const users = await this.prismaService.user.findMany();
+
+    return users;
   }
 
-  async getUserIndexById(userId: User['userId']): Promise<number> {
-    const searchForUserIndex = this.users.findIndex(
-      (user) => user.userId === userId,
-    );
-    return searchForUserIndex;
-  }
-
-  async removeUserById(userId: User['userId']): Promise<void> {
-    const findUserIndex = await this.getUserIndexById(userId);
-    if (findUserIndex == -1) {
-      throw new ConflictException(
-        'User does not exist so cannot be removed from the store',
-      );
+  async getUserById(user_id: User['userId']): Promise<UserModel> {
+    const found = await this.prismaService.user.findUnique({
+      where: {
+        user_id: user_id,
+      },
+    });
+    if (!found) {
+      throw new NotFoundException('User does not exist');
     }
-    this.users.splice(findUserIndex, 1);
+    return found;
   }
 }

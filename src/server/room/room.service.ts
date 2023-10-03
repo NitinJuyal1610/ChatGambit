@@ -1,151 +1,170 @@
 import { Injectable } from '@nestjs/common';
 import { Room } from '../entities/room.entity';
+import { Room as RoomModel } from '@prisma/client';
 import { User } from '../../shared/interfaces/chat.interface';
 import { UserService } from '../user/user.service';
-import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
+import { Room as RoomType } from '../entities/room.entity';
+import {
+  NotFoundException,
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class RoomService {
-  constructor(private userService: UserService) {}
-  private rooms: Room[] = [];
+  constructor(
+    private userService: UserService,
+    private prismaService: PrismaService,
+  ) {}
 
-  async addRoom(roomName: Room['name'], hostId: User['userId']): Promise<void> {
+  async addRoom(
+    roomName: Room['name'],
+    hostId: User['userId'],
+  ): Promise<RoomModel> {
     const hostUser = await this.userService.getUserById(hostId);
-    if (hostUser === 'Not Exists') {
+    if (!hostUser) {
       throw new NotFoundException(
         'The host user with which you are attempting to create a new room does not exist',
       );
     }
-    const room = await this.getRoomIndexByName(roomName);
-    if (room === -1) {
-      this.rooms.push(
-        new Room({ name: roomName, host: hostUser, users: [hostUser] }),
-      );
+    const room = await this.prismaService.room.create({
+      data: {
+        room_name: roomName,
+        host: { connect: { user_id: hostId } },
+        users: { connect: [{ user_id: hostId }] },
+      },
+    });
+
+    if (!room) {
+      throw new InternalServerErrorException();
     }
+    return room;
   }
 
-  async removeRoom(roomName: Room['name']): Promise<void> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
-    if (roomIndex === -1) {
-      throw new NotFoundException(
-        'The room which you are attempting to remove does not exist',
-      );
+  async getRoomByName(roomName: Room['name']): Promise<RoomModel> {
+    const room = await this.prismaService.room.findUnique({
+      where: {
+        room_name: roomName,
+      },
+      include: {
+        users: true,
+        host: true,
+      },
+    });
+
+    if (!room) {
+      throw new NotFoundException(`Room with name ${roomName} does not exist`);
     }
-    this.rooms.splice(roomIndex, 1);
-  }
 
-  async getRoomHost(hostName: Room['host']['userName']): Promise<User> {
-    const roomIndex = await this.getRoomIndexByName(hostName);
-    return this.rooms[roomIndex].host;
-  }
-
-  async getRoomIndexByName(roomName: Room['name']): Promise<number> {
-    const roomIndex = this.rooms.findIndex((room) => room.name === roomName);
-    return roomIndex;
-  }
-
-  async getRoomByName(roomName: Room['name']): Promise<Room | 'Not Exists'> {
-    const findRoom = this.rooms.find((room) => room.name === roomName);
-    if (!findRoom) {
-      return 'Not Exists';
-    }
-    return findRoom;
+    return room;
   }
 
   async addUserToRoom(
     roomName: Room['name'],
     userId: User['userId'],
   ): Promise<void> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
     const newUser = await this.userService.getUserById(userId);
-    if (newUser === 'Not Exists') {
-      throw new NotFoundException(
-        'The user which you are attempting to add to a room does not exist',
-      );
-    }
-    if (roomIndex !== -1) {
-      this.rooms[roomIndex].users.push(newUser);
-      const host = await this.getRoomHost(roomName);
-      if (host.userId === newUser.userId) {
-        this.rooms[roomIndex].host.socketId = newUser.socketId;
+
+    try {
+      const roomDetails = await this.prismaService.room.findUnique({
+        where: {
+          room_name: roomName,
+        },
+      });
+
+      if (!roomDetails) {
+        await this.addRoom(roomName, newUser.user_id);
+      } else {
+        await this.prismaService.room.update({
+          where: {
+            room_name: roomName,
+          },
+          data: {
+            users: {
+              connect: { user_id: newUser.user_id },
+            },
+          },
+        });
       }
-    } else {
-      await this.addRoom(roomName, newUser.userId);
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
   }
 
-  async getRoomsByUserSocketId(socketId: User['socketId']): Promise<Room[]> {
-    const filteredRooms = this.rooms.filter((room) => {
-      const found = room.users.find((user) => user.socketId === socketId);
-      if (found) {
-        return found;
+  async removeUserFromAllRooms(socket_id: User['socketId']): Promise<void> {
+    try {
+      // Find the user to get their associated rooms (both hosted and joined)
+      const user = await this.prismaService.user.findFirst({
+        where: { socket_id: socket_id },
+      });
+
+      if (!user) {
+        throw new NotFoundException(
+          `User with socket_id ${socket_id} not found.`,
+        );
       }
+
+      const user_id = user.user_id;
+
+      // Disconnect the user from all their rooms (both hosted and joined)
+      await this.prismaService.user.update({
+        where: { user_id: user_id },
+        data: {
+          rooms: {
+            set: [],
+          },
+        },
+      });
+
+      //assign new host
+      await this.transferRoomOwnership(user_id);
+      // Finally, delete the user
+      await this.prismaService.user.delete({
+        where: { user_id: user_id },
+      });
+    } catch (error) {
+      throw new ConflictException(
+        'Error removing user from rooms: ' + error.message,
+      );
+    }
+  }
+
+  async transferRoomOwnership(userId: User['userId']): Promise<void> {
+    const user = await this.prismaService.user.findUnique({
+      where: { user_id: userId },
+      include: { hostedRooms: true },
     });
-    return filteredRooms;
-  }
 
-  async getFirstInstanceOfUser(socketId: User['socketId']): Promise<User> {
-    const findRoomsWithUser = await this.getRoomsByUserSocketId(socketId);
-    if (findRoomsWithUser.length === 0) {
-      throw new NotFoundException(
-        'Cound not find any rooms that contain that user',
-      );
+    if (!user) {
+      // User doesn't exist
+      return;
     }
-    const findUserInRoom = findRoomsWithUser[0].users.find(
-      (user) => user.socketId === socketId,
-    );
-    if (!findUserInRoom) {
-      throw new InternalServerErrorException(
-        'could not find user in that room',
-      );
-    }
-    return findUserInRoom;
-  }
 
-  async removeUserFromAllRooms(socketId: User['socketId']): Promise<void> {
-    const rooms = await this.getRoomsByUserSocketId(socketId);
-    for (const room of rooms) {
-      await this.removeUserFromRoom(socketId, room.name);
-    }
-  }
+    for (const room of user.hostedRooms) {
+      // Find another user to transfer ownership to
+      const newHost = await this.prismaService.user.findFirst({
+        where: { id: { not: user.id } }, // Exclude the current user
+      });
 
-  async removeUserFromRoom(
-    socketId: User['socketId'],
-    roomName: Room['name'],
-  ): Promise<void> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
-    if (roomIndex === -1) {
-      throw new NotFoundException(
-        'The room which you attempted to remove a user from does not exist',
-      );
-    }
-    const userIndex = await this.getUserIndexFromRoomBySocketId(
-      socketId,
-      roomIndex,
-    );
-    if (userIndex === -1) {
-      throw new InternalServerErrorException(
-        'The user which you attempted to remove from a room does not exist in that room',
-      );
-    }
-    this.rooms[roomIndex].users.splice(userIndex, 1);
-    if (this.rooms[roomIndex].users.length === 0) {
-      await this.removeRoom(roomName);
+      if (newHost) {
+        // Transfer ownership by updating the room
+        await this.prismaService.room.update({
+          where: { id: room.id },
+          data: {
+            host_id: newHost.id,
+          },
+        });
+      } else {
+        // No other users to transfer ownership to
+        await this.prismaService.room.delete({
+          where: { id: room.id },
+        });
+      }
     }
   }
 
-  async getUserIndexFromRoomBySocketId(
-    socketId: User['socketId'],
-    roomIndex: number,
-  ): Promise<number> {
-    const userIndex = this.rooms[roomIndex].users.findIndex(
-      (user) => user.socketId === socketId,
-    );
-    return userIndex;
-  }
-
-  async getRooms(): Promise<Room[]> {
-    return this.rooms;
+  async getRooms(): Promise<RoomModel[]> {
+    return await this.prismaService.room.findMany();
   }
 }

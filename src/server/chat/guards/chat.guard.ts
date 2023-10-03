@@ -41,7 +41,7 @@ export class ChatPoliciesGuard<
     const room = await this.roomService.getRoomByName(data.roomName);
 
     if (data.eventName === 'kick_user') {
-      if (room === 'Not Exists') {
+      if (!room) {
         throw new ConflictException(
           `Room must exist to evaluate ${data.eventName} policy`,
         );
@@ -50,11 +50,11 @@ export class ChatPoliciesGuard<
     }
 
     if (data.eventName === 'join_room') {
-      policyHandlers.push((ability) => ability.can(Action.Join, Room));
+      policyHandlers.push((ability) => ability.can(Action.Join, room));
     }
 
     if (data.eventName === 'chat') {
-      if (room === 'Not Exists') {
+      if (!room) {
         throw new ConflictException(
           `Room must exist to evaluate ${data.eventName} policy`,
         );

@@ -10,6 +10,7 @@ import { Logger, UseGuards, UsePipes } from '@nestjs/common';
 import {
   ServerToClientEvents,
   ClientToServerEvents,
+  MessageWithUser,
   Message,
   JoinRoom,
   KickUser,
@@ -111,10 +112,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(socket: Socket): Promise<void> {
-    const user = await this.roomService.getFirstInstanceOfUser(socket.id);
-    if (user) {
-      await this.userService.removeUserById(user.userId);
-    }
     await this.roomService.removeUserFromAllRooms(socket.id);
     this.logger.log(`Socket disconnected: ${socket.id}`);
   }

@@ -1,37 +1,53 @@
-generator client {
-  provider = "prisma-client-js"
+generator zod {
+  provider                         = "zod-prisma-types"
+  output                           = "../src/shared/schemas" 
+  useMultipleFiles                 = true // default is false
+  writeBarrelFiles                 = false // default is true
+  createInputTypes                 = false
+  createOptionalDefaultValuesTypes = true // default is false
+  createRelationValuesTypes        = true // default is false
+  addIncludeType                   = false // default is true
+  addSelectType                    = false // default is true
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+enum Event {
+  chat
+  kick_user
+  join_room
+}
+// User model represents a user in the chatGambit
 model User {
-  id           Int      @id @default(autoincrement())
-  user_id      String   @unique
-  user_name    String   @unique
-  socket_id    String?
-  chats        Chat[]
-  rooms        Room[]   @relation("UserRooms")
-  hostedRooms  Room[]
+  id           Int      @id @default(autoincrement()) // Primary key
+  userId       String   @unique                     // Unique identifier for the user
+  userName     String   // User's name
+  socketId     String?  // Optional socket ID
+  chats        Chat[]   // User's chat messages
+  rooms        Room[]   @relation("UserRooms")       // Rooms the user is a part of
+  hostedRooms  Room[]   // Rooms hosted by the user
 }
 
+// Room model represents a chat room in the application
 model Room {
-  id           Int      @id @default(autoincrement())
-  room_name    String   @unique
-  host         User     @relation(fields: [host_id], references: [id])
-  host_id      Int      // relational scalar
-  chats        Chat[]
-  users        User[]   @relation("UserRooms")
+  id           Int      @id @default(autoincrement()) // Primary key
+  roomName     String   @unique                     // Unique room identifier
+  host         User     @relation(fields: [hostId], references: [id])
+  hostId       Int                                  // Relational scalar for the host
+  chats        Chat[]                              // Chat messages in the room
+  users        User[]   @relation("UserRooms")       // Users in the room
 }
 
+// Chat model represents a chat message
 model Chat {
-  id           Int      @id @default(autoincrement())
-  user         User     @relation(fields: [user_id], references: [id])
-  user_id      Int
-  time_sent    DateTime @default(now())
-  message      String
-  room         Room     @relation(fields: [room_name], references: [room_name])
-  room_name    String
+  id           Int      @id @default(autoincrement()) // Primary key
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int                                // Relational scalar for the user
+  timeSent     Int                                  // Timestamp of the message
+  message      String                               // Message content
+  room         Room     @relation(fields: [roomName], references: [roomName])
+  roomName     String                               // Relational scalar for the room
+  eventName    Event                  // Type of event
 }

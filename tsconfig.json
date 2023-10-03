@@ -9,6 +9,7 @@
     "lib": ["es7", "DOM"],
     "module": "commonjs",
     "declaration": true,
+    "types": ["cross-spawn"],
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

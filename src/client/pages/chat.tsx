@@ -84,7 +84,7 @@ function Chat() {
       });
 
       socket.on('chat', (e) => {
-        if (e.user.userId !== user.userId) {
+        if (e.userId !== user.userId) {
           setMessages((messages) => [{ ...e, delivered: true }, ...messages]);
         }
       });
@@ -114,11 +114,7 @@ function Chat() {
   const sendMessage = (message: string) => {
     if (user && socket && roomName) {
       const chatMessage: Message = {
-        user: {
-          userId: user.userId,
-          userName: user.userName,
-          socketId: socket.id,
-        },
+        userId: user.userId,
         timeSent: Date.now(),
         message,
         roomName: roomName,
@@ -147,7 +143,7 @@ function Chat() {
           setMessages((messages) => {
             const previousMessageIndex = messages.findIndex((mes) => {
               if (
-                mes.user.userId === user.userId &&
+                mes.userId === user.userId &&
                 mes.timeSent === chatMessage.timeSent
               ) {
                 return mes;
