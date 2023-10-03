@@ -10,7 +10,6 @@ import { Logger, UseGuards, UsePipes } from '@nestjs/common';
 import {
   ServerToClientEvents,
   ClientToServerEvents,
-  MessageWithUser,
   Message,
   JoinRoom,
   KickUser,

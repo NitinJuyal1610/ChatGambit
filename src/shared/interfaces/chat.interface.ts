@@ -11,7 +11,6 @@ import {
   ClientToServerEventsSchema,
   UserSchema,
   ChatMessageSchema,
-  ChatMessageWithRelationsSchema,
 } from '../schemas/chat.schema';
 
 export type UserId = z.infer<typeof UserIdSchema>;
@@ -21,7 +20,6 @@ export type User = z.infer<typeof UserSchema>;
 export type RoomName = z.infer<typeof RoomNameSchema>;
 export type Room = z.infer<typeof RoomSchema>;
 export type Message = z.infer<typeof ChatMessageSchema>;
-export type MessageWithUser = z.infer<typeof ChatMessageWithRelationsSchema>;
 
 export type JoinRoom = z.infer<typeof JoinRoomSchema>;
 export type KickUser = z.infer<typeof KickUserSchema>;

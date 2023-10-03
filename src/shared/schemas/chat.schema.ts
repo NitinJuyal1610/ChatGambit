@@ -1,9 +1,6 @@
 import { z } from 'zod';
 import { UserOptionalDefaultsSchema } from './modelSchema/UserSchema';
-import {
-  ChatOptionalDefaultsSchema,
-  ChatOptionalDefaultsWithRelationsSchema,
-} from './modelSchema/ChatSchema';
+import { ChatOptionalDefaultsSchema } from './modelSchema/ChatSchema';
 export const UserIdSchema = z.string().min(1).max(64);
 
 export const UserNameSchema = z
@@ -20,8 +17,6 @@ export const TimeSentSchema = z.number().int();
 
 export const ChatMessageSchema = ChatOptionalDefaultsSchema;
 export const UserSchema = UserOptionalDefaultsSchema;
-export const ChatMessageWithRelationsSchema =
-  ChatOptionalDefaultsWithRelationsSchema;
 
 export const RoomNameSchemaRegex = new RegExp('^\\S+\\w$');
 
