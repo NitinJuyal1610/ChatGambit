@@ -10,6 +10,7 @@ export const useRoomQuery = (roomName, isConnected) => {
     refetchInterval: 60000,
     enabled: isConnected,
   });
+
   return query;
 };
 

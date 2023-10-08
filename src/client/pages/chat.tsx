@@ -34,7 +34,7 @@ function Chat() {
   } = useMatch<ChatLocationGenerics>();
 
   const [isConnected, setIsConnected] = useState(socket.connected);
-  const [messages, setMessages] = useState<ClientMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [toggleUserList, setToggleUserList] = useState<boolean>(false);
   const [isJoinedRoom, setIsJoinedRoom] = useState(false);
   const [isJoiningDelay, setIsJoiningDelay] = useState(false);
@@ -78,6 +78,7 @@ function Chat() {
             setIsJoinedRoom(true);
           }
         });
+
         setIsConnected(true);
       });
 
@@ -87,9 +88,9 @@ function Chat() {
 
       socket.on('chat', (e) => {
         console.log(e, 'event');
-        // if (e.userId !== user.userId) {
-        //   setMessages((messages) => [{ ...e, delivered: true }, ...messages]);
-        // }
+        if (e.userId !== user.userId) {
+          setMessages((messages) => [{ ...e }, ...messages]);
+        }
       });
 
       socket.on('kick_user', (e) => {
@@ -108,6 +109,10 @@ function Chat() {
     };
   }, []);
 
+  useEffect(() => {
+    if (room) setMessages(room.chats?.reverse() || []);
+  }, [room, roomName]);
+
   const leaveRoom = () => {
     socket.disconnect();
     unsetRoom();
@@ -119,6 +124,7 @@ function Chat() {
       const chatMessage: Message = {
         userId: user.userId,
         message,
+        timeSent: Date.now().toString(),
         roomName: roomName,
         eventName: 'chat',
       };
@@ -132,38 +138,11 @@ function Chat() {
       }
 
       // Update state with message "delivered" status to false
-
-      // setMessages((messages) => [
-      //   { ...chatMessage, delivered: false },
-      //   ...messages,
-      // ]);
+      setMessages((messages) => [{ ...chatMessage }, ...messages]);
       // Emit 'chat' event with message and callback
       socket.emit('chat', chatMessage, (response) => {
         // If server response with response === true
-        if (response) {
-          console.log(response, 'isResponse');
-          console.log(room, 'room');
-          // Update state by finding previously set message
-          // and setting it's "delivered" status to true
-          // setMessages((messages) => {
-          //   const previousMessageIndex = messages.findIndex((mes) => {
-          //     if (
-          //       mes.userId === user.userId &&
-          //       mes.timeSent === chatMessage.timeSent
-          //     ) {
-          //       return mes;
-          //     }
-          //   });
-          //   if (previousMessageIndex === -1) {
-          //     throw 'Previously sent message not found to update delivered status';
-          //   }
-          //   messages[previousMessageIndex] = {
-          //     ...messages[previousMessageIndex],
-          //     delivered: true,
-          //   };
-          //   return [...messages];
-          // });
-        }
+        console.log('Delivered', response);
       });
     }
   };

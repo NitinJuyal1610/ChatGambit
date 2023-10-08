@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
 import { EventNameSchema } from '../utils.schema';
-import { UserIdSchema, MessageSchema, RoomNameSchema } from '../utils.schema';
+import {
+  UserIdSchema,
+  TimeSentSchema,
+  MessageSchema,
+  RoomNameSchema,
+} from '../utils.schema';
 import UserSchema, { UserOptionalDefaultsSchema } from './UserSchema';
 
 /////////////////////////////////////////
@@ -12,6 +17,7 @@ export const ChatSchema = z.object({
   eventName: EventNameSchema,
   id: z.number().int(),
   userId: UserIdSchema,
+  timeSent: TimeSentSchema,
   message: MessageSchema,
   roomName: RoomNameSchema,
   user: UserOptionalDefaultsSchema.optional(),

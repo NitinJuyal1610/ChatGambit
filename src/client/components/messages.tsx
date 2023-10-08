@@ -1,6 +1,8 @@
 import React from 'react';
 import { Message, User } from '../../shared/interfaces/chat.interface';
-export type ClientMessage = Message & { delivered: boolean };
+// export type ClientMessage = Message & { delivered: boolean };
+
+export type ClientMessage = Message;
 
 const determineMessageStyle = (
   user: Pick<User, 'userId' | 'userName'>,
@@ -30,32 +32,26 @@ export const Messages = ({
     <div className="flex h-4/6 w-full flex-col-reverse overflow-y-scroll">
       {messages?.map((message, index) => {
         return (
-          <div key={index + message.timeSent} className="mb-4">
-            <div
-              className={
-                determineMessageStyle(user, message.user.userId).sender
-              }
-            >
+          <div key={index + Number(message.timeSent)} className="mb-4">
+            <div className={determineMessageStyle(user, message.userId).sender}>
               <span className="text-sm text-gray-400">
-                {message.user.userName}
+                {message.user?.userName}
               </span>
               <span className="text-sm text-gray-400">{' ' + '•' + ' '}</span>
               <span className="text-sm text-gray-400">
-                {new Date(message.timeSent).toLocaleTimeString()}
+                {new Date(Number(message.timeSent)).toLocaleTimeString()}
               </span>
             </div>
             <div
-              className={
-                determineMessageStyle(user, message.user.userId).message
-              }
+              className={determineMessageStyle(user, message.userId).message}
             >
               <p className="text-white">{message.message}</p>
             </div>
-            {user && message.user.userId === user.userId && (
+            {/* {user && message.userId === user.userId && (
               <p className="text-right text-xs text-gray-400 px-4">
                 {message.delivered ? 'Delivered' : 'Not delivered'}
               </p>
-            )}
+            )} */}
           </div>
         );
       })}

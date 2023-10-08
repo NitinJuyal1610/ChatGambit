@@ -12,6 +12,7 @@ export class ChatService {
         data: {
           eventName: messageData.eventName,
           user: { connect: { userId: messageData.userId } },
+          timeSent: messageData.timeSent,
           message: messageData.message,
           room: {
             connect: {

@@ -38,7 +38,7 @@ model Chat {
   id           Int      @id @default(autoincrement()) // Primary key
   user         User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
   userId       String                                // Relational scalar for the user
-  timeSent     DateTime @default(now())              // Timestamp of the message
+  timeSent     String              // Timestamp of the message
   message      String                               // Message content
   room         Room     @relation(fields: [roomName], references: [name], onDelete: Cascade)
   roomName     String                               // Relational scalar for the room
