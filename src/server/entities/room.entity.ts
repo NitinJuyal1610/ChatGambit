@@ -9,6 +9,7 @@ export class Room implements RoomType {
     Object.assign(this, attrs);
   }
   name: RoomName;
-  host: User;
-  users: User[];
+  host?: User;
+  users?: User[];
+  hostId: number;
 }

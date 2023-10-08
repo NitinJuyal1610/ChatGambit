@@ -4,7 +4,7 @@ export type ClientMessage = Message & { delivered: boolean };
 
 const determineMessageStyle = (
   user: Pick<User, 'userId' | 'userName'>,
-  messageUserId: Message['user']['userId'],
+  messageUserId: string,
 ) => {
   if (user && messageUserId === user.userId) {
     return {

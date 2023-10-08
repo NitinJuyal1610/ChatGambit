@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Message } from '../../shared/interfaces/chat.interface';
-import { MessageSchema } from '../../shared/schemas/chat.schema';
+import { MessageSchema } from '../../shared/schemas/utils.schema';
 
 export const MessageForm = ({
   sendMessage,

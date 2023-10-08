@@ -53,7 +53,9 @@ function Chat() {
         setIsJoiningDelay(true);
         const joinRoom: JoinRoom = {
           roomName,
-          user: { socketId: socket.id, ...user },
+          userId: user.userId,
+          userName: user.userName,
+          socketId: socket.id,
           eventName: 'join_room',
         };
 
@@ -84,9 +86,9 @@ function Chat() {
       });
 
       socket.on('chat', (e) => {
-        if (e.userId !== user.userId) {
-          setMessages((messages) => [{ ...e, delivered: true }, ...messages]);
-        }
+        // if (e.userId !== user.userId) {
+        //   setMessages((messages) => [{ ...e, delivered: true }, ...messages]);
+        // }
       });
 
       socket.on('kick_user', (e) => {
@@ -121,7 +123,7 @@ function Chat() {
         eventName: 'chat',
       };
       // Check if chat message passes schema check
-
+      console.log(chatMessage);
       try {
         ChatMessageSchema.parse(chatMessage);
       } catch (error) {
@@ -135,31 +137,31 @@ function Chat() {
         ...messages,
       ]);
       // Emit 'chat' event with message and callback
-      socket.emit('chat', chatMessage, (response) => {
-        // If server response with response === true
-        if (response) {
-          // Update state by finding previously set message
-          // and setting it's "delivered" status to true
-          setMessages((messages) => {
-            const previousMessageIndex = messages.findIndex((mes) => {
-              if (
-                mes.userId === user.userId &&
-                mes.timeSent === chatMessage.timeSent
-              ) {
-                return mes;
-              }
-            });
-            if (previousMessageIndex === -1) {
-              throw 'Previously sent message not found to update delivered status';
-            }
-            messages[previousMessageIndex] = {
-              ...messages[previousMessageIndex],
-              delivered: true,
-            };
-            return [...messages];
-          });
-        }
-      });
+      // socket.emit('chat', chatMessage, (response) => {
+      // If server response with response === true
+      // if (response) {
+      //   // Update state by finding previously set message
+      //   // and setting it's "delivered" status to true
+      //   setMessages((messages) => {
+      //     const previousMessageIndex = messages.findIndex((mes) => {
+      //       if (
+      //         mes.userId === user.userId &&
+      //         mes.timeSent === chatMessage.timeSent
+      //       ) {
+      //         return mes;
+      //       }
+      //     });
+      //     if (previousMessageIndex === -1) {
+      //       throw 'Previously sent message not found to update delivered status';
+      //     }
+      //     messages[previousMessageIndex] = {
+      //       ...messages[previousMessageIndex],
+      //       delivered: true,
+      //     };
+      //     return [...messages];
+      //   });
+      // }
+      // });
     }
   };
 
@@ -171,7 +173,7 @@ function Chat() {
       throw 'No current user';
     }
     const kickUserData: KickUser = {
-      user: { ...user, socketId: socket.id },
+      userId: user.userId,
       userToKick: userToKick,
       roomName: room.name,
       eventName: 'kick_user',

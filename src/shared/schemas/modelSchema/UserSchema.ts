@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserIdSchema, UserNameSchema } from '../chat.schema';
+import { SocketIdSchema, UserIdSchema, UserNameSchema } from '../utils.schema';
 
 /////////////////////////////////////////
 // USER SCHEMA
@@ -9,7 +9,7 @@ export const UserSchema = z.object({
   id: z.number().int(),
   userId: UserIdSchema,
   userName: UserNameSchema,
-  socketId: z.string().length(20, { message: 'Must be 20 characters.' }),
+  socketId: SocketIdSchema,
 });
 /////////////////////////////////////////
 

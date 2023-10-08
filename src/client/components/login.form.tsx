@@ -2,12 +2,13 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { UserSchema } from '../../shared/schemas/chat.schema';
+
 import {
   RoomNameSchema,
   UserNameSchema,
   RoomNameSchemaRegex,
-  UserSchema,
-} from '../../shared/schemas/chat.schema';
+} from '../../shared/schemas/utils.schema';
 import { generateUserId, setUser } from '../lib/user';
 import { User } from '../../shared/interfaces/chat.interface';
 

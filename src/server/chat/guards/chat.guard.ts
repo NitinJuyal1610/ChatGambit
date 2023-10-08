@@ -14,15 +14,18 @@ import { PolicyHandler } from '../../casl/interfaces/policy.interface';
 import {
   ClientToServerEvents,
   Room as RoomType,
+  SocketId,
   User,
+  UserName,
 } from '../../../shared/interfaces/chat.interface';
-import { Room } from '../../entities/room.entity';
+
 import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
+import { UserService } from 'src/server/user/user.service';
 
 @Injectable()
 export class ChatPoliciesGuard<
   CtxData extends {
-    user: User;
+    userId: string;
     roomName: RoomType['name'];
     eventName: keyof ClientToServerEvents;
   },
@@ -31,13 +34,15 @@ export class ChatPoliciesGuard<
   constructor(
     private caslAbilityFactory: CaslAbilityFactory,
     private roomService: RoomService,
+    private userService: UserService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const policyHandlers: PolicyHandler[] = [];
     const ctx = context.switchToWs();
     const data = ctx.getData<CtxData>();
-    const user = data.user;
+
+    const user = await this.userService.getUserById(data.userId);
     const room = await this.roomService.getRoomByName(data.roomName);
 
     if (data.eventName === 'kick_user') {

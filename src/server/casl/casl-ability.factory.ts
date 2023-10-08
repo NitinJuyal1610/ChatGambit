@@ -18,7 +18,7 @@ export enum Action {
 type Subjects = InferSubjects<typeof Room | typeof User> | 'all';
 export type AppAbility = MongoAbility<[Action, Subjects]>;
 type FlatRoom = Room & {
-  'host.userId': Room['host']['userId'];
+  'host.userId': string | undefined;
 };
 
 @Injectable()

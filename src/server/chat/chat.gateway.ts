@@ -26,6 +26,7 @@ import { UserService } from '../user/user.service';
 import { ChatPoliciesGuard } from './guards/chat.guard';
 import { WsThrottlerGuard } from './guards/throttler.guard';
 import { Throttle } from '@nestjs/throttler';
+import { User } from '../entities/user.entity';
 
 @WebSocketGateway({
   cors: {
@@ -58,24 +59,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return true;
   }
 
-  @UseGuards(ChatPoliciesGuard<JoinRoom>, WsThrottlerGuard)
   @UsePipes(new ZodValidationPipe(JoinRoomSchema))
   @SubscribeMessage('join_room')
   async handleSetClientDataEvent(
     @MessageBody()
     payload: JoinRoom,
   ): Promise<boolean> {
-    if (payload.user.socketId) {
-      this.logger.log(
-        `${payload.user.socketId} is joining ${payload.roomName}`,
-      );
-      await this.userService.addUser(payload.user);
-      await this.server.in(payload.user.socketId).socketsJoin(payload.roomName);
-      await this.roomService.addUserToRoom(
-        payload.roomName,
-        payload.user.userId,
-      );
+    const userId = payload.userId;
+    const socketId = payload.socketId;
+    const userName = payload.userName;
+    this.logger.log(`${socketId} is joining ${payload.roomName}`);
+
+    try {
+      await this.userService.getUserById(userId);
+    } catch (error) {
+      await this.userService.addUser({
+        userId: payload.userId,
+        socketId: socketId,
+        userName: userName,
+      });
     }
+
+    this.server.in(socketId).socketsJoin(payload.roomName);
+    await this.roomService.addUserToRoom(payload.roomName, userId);
 
     return true;
   }
@@ -89,11 +95,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.userToKick.userName} is getting kicked from ${payload.roomName}`,
     );
-    await this.server.to(payload.roomName).emit('kick_user', payload);
-    await this.server
-      .in(payload.userToKick.socketId)
-      .socketsLeave(payload.roomName);
-    await this.server.to(payload.roomName).emit('chat', {
+    this.server.to(payload.roomName).emit('kick_user', payload);
+    this.server.in(payload.userToKick.socketId).socketsLeave(payload.roomName);
+    this.server.to(payload.roomName).emit('chat', {
       user: {
         userId: 'serverId',
         userName: 'TheServer',

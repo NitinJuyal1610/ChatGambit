@@ -30,9 +30,9 @@ export class RoomService {
     }
     const room = await this.prismaService.room.create({
       data: {
-        room_name: roomName,
-        host: { connect: { user_id: hostId } },
-        users: { connect: [{ user_id: hostId }] },
+        name: roomName,
+        host: { connect: { userId: hostId } },
+        users: { connect: [{ userId: hostId }] },
       },
     });
 
@@ -42,10 +42,10 @@ export class RoomService {
     return room;
   }
 
-  async getRoomByName(roomName: Room['name']): Promise<RoomModel> {
+  async getRoomByName(roomName: Room['name']): Promise<RoomType> {
     const room = await this.prismaService.room.findUnique({
       where: {
-        room_name: roomName,
+        name: roomName,
       },
       include: {
         users: true,
@@ -69,20 +69,20 @@ export class RoomService {
     try {
       const roomDetails = await this.prismaService.room.findUnique({
         where: {
-          room_name: roomName,
+          name: roomName,
         },
       });
 
       if (!roomDetails) {
-        await this.addRoom(roomName, newUser.user_id);
+        await this.addRoom(roomName, newUser.userId);
       } else {
         await this.prismaService.room.update({
           where: {
-            room_name: roomName,
+            name: roomName,
           },
           data: {
             users: {
-              connect: { user_id: newUser.user_id },
+              connect: { userId: newUser.userId },
             },
           },
         });
@@ -96,7 +96,7 @@ export class RoomService {
     try {
       // Find the user to get their associated rooms (both hosted and joined)
       const user = await this.prismaService.user.findFirst({
-        where: { socket_id: socket_id },
+        where: { socketId: socket_id },
       });
 
       if (!user) {
@@ -105,11 +105,11 @@ export class RoomService {
         );
       }
 
-      const user_id = user.user_id;
+      const user_id = user.userId;
 
       // Disconnect the user from all their rooms (both hosted and joined)
       await this.prismaService.user.update({
-        where: { user_id: user_id },
+        where: { userId: user_id },
         data: {
           rooms: {
             set: [],
@@ -121,7 +121,7 @@ export class RoomService {
       await this.transferRoomOwnership(user_id);
       // Finally, delete the user
       await this.prismaService.user.delete({
-        where: { user_id: user_id },
+        where: { userId: user_id },
       });
     } catch (error) {
       throw new ConflictException(
@@ -132,7 +132,7 @@ export class RoomService {
 
   async transferRoomOwnership(userId: User['userId']): Promise<void> {
     const user = await this.prismaService.user.findUnique({
-      where: { user_id: userId },
+      where: { userId: userId },
       include: { hostedRooms: true },
     });
 
@@ -152,7 +152,7 @@ export class RoomService {
         await this.prismaService.room.update({
           where: { id: room.id },
           data: {
-            host_id: newHost.id,
+            hostId: newHost.id,
           },
         });
       } else {

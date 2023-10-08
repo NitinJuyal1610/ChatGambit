@@ -1,13 +1,6 @@
 generator zod {
-  provider                         = "zod-prisma-types"
-  output                           = "../src/shared/schemas" 
-  useMultipleFiles                 = true // default is false
-  writeBarrelFiles                 = false // default is true
-  createInputTypes                 = false
-  createOptionalDefaultValuesTypes = true // default is false
-  createRelationValuesTypes        = true // default is false
-  addIncludeType                   = false // default is true
-  addSelectType                    = false // default is true
+  provider= "prisma-client-js"
+
 }
 
 datasource db {
@@ -24,7 +17,7 @@ model User {
   id           Int      @id @default(autoincrement()) // Primary key
   userId       String   @unique                     // Unique identifier for the user
   userName     String   // User's name
-  socketId     String?  // Optional socket ID
+  socketId     String  
   chats        Chat[]   // User's chat messages
   rooms        Room[]   @relation("UserRooms")       // Rooms the user is a part of
   hostedRooms  Room[]   // Rooms hosted by the user
@@ -33,7 +26,7 @@ model User {
 // Room model represents a chat room in the application
 model Room {
   id           Int      @id @default(autoincrement()) // Primary key
-  roomName     String   @unique                     // Unique room identifier
+  name         String   @unique                     // Unique room identifier
   host         User     @relation(fields: [hostId], references: [id])
   hostId       Int                                  // Relational scalar for the host
   chats        Chat[]                              // Chat messages in the room
@@ -47,7 +40,7 @@ model Chat {
   userId       Int                                // Relational scalar for the user
   timeSent     Int                                  // Timestamp of the message
   message      String                               // Message content
-  room         Room     @relation(fields: [roomName], references: [roomName])
+  room         Room     @relation(fields: [roomName], references: [name])
   roomName     String                               // Relational scalar for the room
   eventName    Event                  // Type of event
 }

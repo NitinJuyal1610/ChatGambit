@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
-import { EventNameSchema } from '../chat.schema';
+import { EventNameSchema } from '../utils.schema';
 import {
   UserIdSchema,
   TimeSentSchema,
   MessageSchema,
   RoomNameSchema,
-} from '../chat.schema';
-import UserSchema from './UserSchema';
+} from '../utils.schema';
+import UserSchema, { UserOptionalDefaultsSchema } from './UserSchema';
 
 /////////////////////////////////////////
 // CHAT SCHEMA
@@ -20,7 +20,7 @@ export const ChatSchema = z.object({
   timeSent: TimeSentSchema,
   message: MessageSchema,
   roomName: RoomNameSchema,
-  user: UserSchema,
+  user: UserOptionalDefaultsSchema.optional(),
 });
 
 export type Chat = z.infer<typeof ChatSchema>;

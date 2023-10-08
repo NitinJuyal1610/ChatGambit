@@ -11,11 +11,12 @@ export class UserService {
 
   async addUser(user: User) {
     try {
+      console.log('create user ', user);
       const newUser = await this.prismaService.user.create({
         data: {
-          user_id: user.userId,
-          user_name: user.userName,
-          socket_id: user.socketId,
+          userId: user.userId,
+          userName: user.userName,
+          socketId: user.socketId,
         },
       });
       return newUser;
@@ -33,7 +34,7 @@ export class UserService {
   async getUserById(user_id: User['userId']): Promise<UserModel> {
     const found = await this.prismaService.user.findUnique({
       where: {
-        user_id: user_id,
+        userId: user_id,
       },
     });
     if (!found) {
