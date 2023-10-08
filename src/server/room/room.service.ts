@@ -50,6 +50,7 @@ export class RoomService {
       include: {
         users: true,
         host: true,
+        chats: true,
       },
     });
 
@@ -100,9 +101,7 @@ export class RoomService {
       });
 
       if (!user) {
-        throw new NotFoundException(
-          `User with socket_id ${socket_id} not found.`,
-        );
+        return;
       }
 
       const user_id = user.userId;
@@ -131,36 +130,48 @@ export class RoomService {
   }
 
   async transferRoomOwnership(userId: User['userId']): Promise<void> {
-    const user = await this.prismaService.user.findUnique({
-      where: { userId: userId },
-      include: { hostedRooms: true },
-    });
-
-    if (!user) {
-      // User doesn't exist
-      return;
-    }
-
-    for (const room of user.hostedRooms) {
-      // Find another user to transfer ownership to
-      const newHost = await this.prismaService.user.findFirst({
-        where: { id: { not: user.id } }, // Exclude the current user
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: { userId: userId },
+        include: { hostedRooms: true },
       });
 
-      if (newHost) {
-        // Transfer ownership by updating the room
-        await this.prismaService.room.update({
-          where: { id: room.id },
-          data: {
-            hostId: newHost.id,
-          },
-        });
-      } else {
-        // No other users to transfer ownership to
-        await this.prismaService.room.delete({
-          where: { id: room.id },
-        });
+      if (!user) {
+        // User doesn't exist
+        return;
       }
+
+      for (const room of user.hostedRooms) {
+        // Find another user to transfer ownership to
+        const newHost = await this.prismaService.user.findFirst({
+          where: {
+            id: { not: user.id },
+            rooms: {
+              some: {
+                name: room.name, // Filter by the room's name
+              },
+            },
+          }, // Exclude the current user
+        });
+
+        if (newHost) {
+          // Transfer ownership by updating the room
+          await this.prismaService.room.update({
+            where: { id: room.id },
+            data: {
+              hostId: newHost.id,
+            },
+          });
+        } else {
+          // No other users to transfer ownership to
+          await this.prismaService.room.delete({
+            where: { id: room.id },
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
     }
   }
 

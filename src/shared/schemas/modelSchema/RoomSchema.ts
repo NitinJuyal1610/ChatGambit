@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { RoomNameSchema } from '../utils.schema';
+import { ChatOptionalDefaultsSchema } from './ChatSchema';
 import { UserOptionalDefaultsSchema } from './UserSchema';
 
 /////////////////////////////////////////
@@ -13,6 +14,7 @@ export const RoomSchema = z.object({
   hostId: z.number().int().nullable(),
   host: UserOptionalDefaultsSchema.optional(),
   users: UserOptionalDefaultsSchema.array().optional(),
+  chats: ChatOptionalDefaultsSchema.array().optional(),
 });
 export type Room = z.infer<typeof RoomSchema>;
 

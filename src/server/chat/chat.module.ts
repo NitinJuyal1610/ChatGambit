@@ -4,8 +4,9 @@ import { RoomModule } from '../room/room.module';
 import { UserModule } from '../user/user.module';
 import { CaslModule } from '../casl/casl.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ChatController } from './chat.controller';
+
 import { ChatService } from './chat.service';
+import { PrismaService } from '../prisma.service';
 
 @Module({
   imports: [
@@ -19,7 +20,6 @@ import { ChatService } from './chat.service';
       },
     ]),
   ],
-  providers: [ChatGateway, ChatService],
-  controllers: [ChatController],
+  providers: [ChatGateway, ChatService, PrismaService],
 })
 export class ChatModule {}

@@ -45,31 +45,33 @@ export class ChatPoliciesGuard<
     const user = await this.userService.getUserById(data.userId);
     const room = await this.roomService.getRoomByName(data.roomName);
 
-    if (data.eventName === 'kick_user') {
-      if (!room) {
-        throw new ConflictException(
-          `Room must exist to evaluate ${data.eventName} policy`,
-        );
-      }
-      policyHandlers.push((ability) => ability.can(Action.Kick, room));
-    }
+    // if (data.eventName === 'kick_user') {
+    //   if (!room) {
+    //     throw new ConflictException(
+    //       `Room must exist to evaluate ${data.eventName} policy`,
+    //     );
+    //   }
+    //   policyHandlers.push((ability) => ability.can(Action.Kick, room));
+    // }
 
-    if (data.eventName === 'join_room') {
-      policyHandlers.push((ability) => ability.can(Action.Join, room));
-    }
+    // if (data.eventName === 'join_room') {
+    //   policyHandlers.push((ability) => ability.can(Action.Join, room));
+    // }
 
-    if (data.eventName === 'chat') {
-      if (!room) {
-        throw new ConflictException(
-          `Room must exist to evaluate ${data.eventName} policy`,
-        );
-      }
-      policyHandlers.push((ability) => ability.can(Action.Message, room));
-    }
+    // if (data.eventName === 'chat') {
+    //   if (!room) {
+    //     throw new ConflictException(
+    //       `Room must exist to evaluate ${data.eventName} policy`,
+    //     );
+    //   }
+    //   policyHandlers.push((ability) => ability.can(Action.Message, room));
+    // }
 
     const ability = this.caslAbilityFactory.createForUser(user);
     policyHandlers.every((handler) => {
       const check = this.execPolicyHandler(handler, ability);
+
+      console.log(check, ability);
       if (check === false) {
         throw new ForbiddenException();
       }

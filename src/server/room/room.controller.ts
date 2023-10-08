@@ -14,21 +14,12 @@ export class RoomController {
     return await this.roomService.getRooms();
   }
 
-  // @Get('api/rooms/:room')
-  // async getRoom(@Param() params): Promise<Room> {
-  //   const room = await this.roomService.getRoomByName(params.room);
-  //   if (room === 'Not Exists') {
-  //     throw new NotFoundException();
-  //   }
-  //   return room;
-  // }
+  @Get('api/rooms/:room')
+  async getRoom(@Param() params): Promise<Room> {
+    const room = await this.roomService.getRoomByName(params.room);
 
-  // @Post('api/rooms')
-  // async addRoom(
-  //   @Body() body: { roomName: Room['name']; hostId: User['userId'] },
-  // ): Promise<RoomModel> {
-  //   return await this.roomService.addRoom(body.roomName, body.hostId);
-  // }
+    return room;
+  }
 
   @Post('api/rooms')
   async modifyUser(userId: User['userId']): Promise<void> {

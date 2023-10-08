@@ -27,6 +27,7 @@ import { ChatPoliciesGuard } from './guards/chat.guard';
 import { WsThrottlerGuard } from './guards/throttler.guard';
 import { Throttle } from '@nestjs/throttler';
 import { User } from '../entities/user.entity';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({
   cors: {
@@ -37,6 +38,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private roomService: RoomService,
     private userService: UserService,
+    private chatService: ChatService,
   ) {}
 
   @WebSocketServer() server: Server = new Server<
@@ -55,6 +57,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: Message,
   ): Promise<boolean> {
     this.logger.log(payload);
+
+    console.log(payload);
+    await this.chatService.newMessage(payload);
     this.server.to(payload.roomName).emit('chat', payload);
     return true;
   }
