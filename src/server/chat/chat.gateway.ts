@@ -57,10 +57,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: Message,
   ): Promise<boolean> {
     this.logger.log(payload);
-
-    console.log(payload);
-    await this.chatService.newMessage(payload);
-    this.server.to(payload.roomName).emit('chat', payload);
+    const message = await this.chatService.newMessage(payload);
+    this.server.to(payload.roomName).emit('chat', message);
     return true;
   }
 
@@ -102,16 +100,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
     this.server.to(payload.roomName).emit('kick_user', payload);
     this.server.in(payload.userToKick.socketId).socketsLeave(payload.roomName);
-    this.server.to(payload.roomName).emit('chat', {
-      user: {
-        userId: 'serverId',
-        userName: 'TheServer',
-        socketId: 'ServerSocketId',
-      },
-      timeSent: new Date(Date.now()).toLocaleString('en-US'),
+
+    const kickMessage: Message = {
+      userId: payload.userId,
+      timeSent: Date.now().toString(),
       message: `${payload.userToKick.userName} was kicked.`,
       roomName: payload.roomName,
-    });
+      eventName: 'chat',
+    };
+
+    await this.chatService.newMessage(kickMessage);
+
+    this.server.to(payload.roomName).emit('chat', kickMessage);
     return true;
   }
 

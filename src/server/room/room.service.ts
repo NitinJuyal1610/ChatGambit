@@ -50,13 +50,19 @@ export class RoomService {
       include: {
         users: true,
         host: true,
-        chats: true,
+        chats: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
     if (!room) {
       throw new NotFoundException(`Room with name ${roomName} does not exist`);
     }
+
+    console.log(room, 'returned room');
 
     return room;
   }

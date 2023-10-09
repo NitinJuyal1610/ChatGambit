@@ -20,6 +20,10 @@ export class ChatService {
             },
           },
         },
+
+        include: {
+          user: true,
+        },
       });
 
       return message;

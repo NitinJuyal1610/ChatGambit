@@ -1,8 +1,6 @@
 import React from 'react';
 import { Message, User } from '../../shared/interfaces/chat.interface';
-// export type ClientMessage = Message & { delivered: boolean };
-
-export type ClientMessage = Message;
+export type ClientMessage = Message & { delivered: boolean };
 
 const determineMessageStyle = (
   user: Pick<User, 'userId' | 'userName'>,
@@ -39,7 +37,7 @@ export const Messages = ({
               </span>
               <span className="text-sm text-gray-400">{' ' + '•' + ' '}</span>
               <span className="text-sm text-gray-400">
-                {new Date(Number(message.timeSent)).toLocaleTimeString()}
+                {new Date(Number(message.timeSent)).toLocaleString('en-US')}
               </span>
             </div>
             <div
@@ -47,11 +45,11 @@ export const Messages = ({
             >
               <p className="text-white">{message.message}</p>
             </div>
-            {/* {user && message.userId === user.userId && (
+            {user && message.userId === user.userId && (
               <p className="text-right text-xs text-gray-400 px-4">
                 {message.delivered ? 'Delivered' : 'Not delivered'}
               </p>
-            )} */}
+            )}
           </div>
         );
       })}

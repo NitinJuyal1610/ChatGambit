@@ -34,7 +34,7 @@ function Chat() {
   } = useMatch<ChatLocationGenerics>();
 
   const [isConnected, setIsConnected] = useState(socket.connected);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ClientMessage[]>([]);
   const [toggleUserList, setToggleUserList] = useState<boolean>(false);
   const [isJoinedRoom, setIsJoinedRoom] = useState(false);
   const [isJoiningDelay, setIsJoiningDelay] = useState(false);
@@ -76,6 +76,7 @@ function Chat() {
           }
           if (response) {
             setIsJoinedRoom(true);
+            roomRefetch();
           }
         });
 
@@ -88,8 +89,9 @@ function Chat() {
 
       socket.on('chat', (e) => {
         console.log(e, 'event');
+        console.log(e.userId, '----', user.userId);
         if (e.userId !== user.userId) {
-          setMessages((messages) => [{ ...e }, ...messages]);
+          setMessages((messages) => [{ ...e, delivered: true }, ...messages]);
         }
       });
 
@@ -110,11 +112,21 @@ function Chat() {
   }, []);
 
   useEffect(() => {
-    if (room) setMessages(room.chats?.reverse() || []);
+    console.log('room updated', room);
+    if (room) {
+      const chats = room.chats?.map((chat) => {
+        return { ...chat, delivered: true };
+      });
+
+      // Update state with chat messages
+      setMessages(chats?.reverse() || []);
+      console.log(chats);
+    }
   }, [room, roomName]);
 
   const leaveRoom = () => {
     socket.disconnect();
+    roomRefetch();
     unsetRoom();
     navigate({ to: '/', replace: true });
   };
@@ -138,11 +150,39 @@ function Chat() {
       }
 
       // Update state with message "delivered" status to false
-      setMessages((messages) => [{ ...chatMessage }, ...messages]);
+      setMessages((messages) => [
+        {
+          ...chatMessage,
+          user: { ...user, socketId: socket.id },
+          delivered: false,
+        },
+        ...messages,
+      ]);
       // Emit 'chat' event with message and callback
       socket.emit('chat', chatMessage, (response) => {
         // If server response with response === true
-        console.log('Delivered', response);
+        if (response) {
+          // Update state by finding previously set message
+          // and setting it's "delivered" status to true
+          setMessages((messages) => {
+            const previousMessageIndex = messages.findIndex((mes) => {
+              if (
+                mes.userId === user.userId &&
+                mes.timeSent === chatMessage.timeSent
+              ) {
+                return mes;
+              }
+            });
+            if (previousMessageIndex === -1) {
+              throw 'Previously sent message not found to update delivered status';
+            }
+            messages[previousMessageIndex] = {
+              ...messages[previousMessageIndex],
+              delivered: true,
+            };
+            return [...messages];
+          });
+        }
       });
     }
   };
@@ -170,6 +210,7 @@ function Chat() {
 
     socket.emit('kick_user', kickUserData, (complete) => {
       if (complete) {
+        setToggleUserList((toggleUserList) => !toggleUserList);
         roomRefetch();
       }
     });
@@ -201,7 +242,7 @@ function Chat() {
         </ChatLayout>
       ) : (
         <LoadingLayout>
-          <Loading message={`Joining ${roomName}`}></Loading>
+          <Loading message={`Loading ${roomName}`}></Loading>
         </LoadingLayout>
       )}
     </>
