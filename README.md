@@ -10,6 +10,8 @@ ChatGambit is a modern and scalable chat application built using NestJS, TypeScr
 
 - **Admin Controls:** 👑 Administrators have the ability to kick users from chat groups to maintain order and manage discussions.
 
+- **Persistent Data** 📅 Room and user data persist for active rooms, ensuring a continuous, real-time experience.
+
 ## 🔐 Security and Functionality Enhancements
 
 - **Rate Limiting:** ⏳ To prevent abuse, ChatGambit includes rate limiting functionality to control the number of messages sent within a specific time frame.
@@ -26,6 +28,8 @@ ChatGambit is a modern and scalable chat application built using NestJS, TypeScr
 
   - NestJS
   - TypeScript
+  - Postgress SQL
+  - Prisma ORM
 
 - Frontend:
 
