@@ -40,7 +40,7 @@ function Chat() {
   const [isJoiningDelay, setIsJoiningDelay] = useState(false);
   const { data: room, refetch: roomRefetch } = useRoomQuery(
     roomName,
-    isConnected,
+    isJoinedRoom,
   );
 
   const navigate = useNavigate();
@@ -88,8 +88,6 @@ function Chat() {
       });
 
       socket.on('chat', (e) => {
-        console.log(e, 'event');
-        console.log(e.userId, '----', user.userId);
         if (e.userId !== user.userId) {
           setMessages((messages) => [{ ...e, delivered: true }, ...messages]);
         }
@@ -112,7 +110,6 @@ function Chat() {
   }, []);
 
   useEffect(() => {
-    console.log('room updated', room);
     if (room) {
       const chats = room.chats?.map((chat) => {
         return { ...chat, delivered: true };
@@ -120,15 +117,15 @@ function Chat() {
 
       // Update state with chat messages
       setMessages(chats?.reverse() || []);
-      console.log(chats);
     }
   }, [room, roomName]);
 
   const leaveRoom = () => {
     socket.disconnect();
-    roomRefetch();
     unsetRoom();
-    navigate({ to: '/', replace: true });
+    setTimeout(() => {
+      navigate({ to: '/', replace: true });
+    }, 300);
   };
 
   const sendMessage = (message: string) => {

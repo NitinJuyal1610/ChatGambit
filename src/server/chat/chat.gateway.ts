@@ -106,7 +106,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timeSent: Date.now().toString(),
       message: `${payload.userToKick.userName} was kicked.`,
       roomName: payload.roomName,
-      eventName: 'chat',
+      eventName: 'kick_user',
     };
 
     await this.chatService.newMessage(kickMessage);

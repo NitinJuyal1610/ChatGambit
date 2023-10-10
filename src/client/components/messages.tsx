@@ -5,7 +5,14 @@ export type ClientMessage = Message & { delivered: boolean };
 const determineMessageStyle = (
   user: Pick<User, 'userId' | 'userName'>,
   messageUserId: string,
+  eventType: string,
 ) => {
+  if (eventType === 'kick_user') {
+    return {
+      message:
+        'bg-transparent text-white flex justify-center underline underline-offset-4 text-sm',
+    };
+  }
   if (user && messageUserId === user.userId) {
     return {
       message: 'bg-slate-500 p-5 ml-24 mr-2 rounded-2xl break-words',
@@ -31,25 +38,37 @@ export const Messages = ({
       {messages?.map((message, index) => {
         return (
           <div key={index + Number(message.timeSent)} className="mb-4">
-            <div className={determineMessageStyle(user, message.userId).sender}>
-              <span className="text-sm text-gray-400">
-                {message.user?.userName}
-              </span>
-              <span className="text-sm text-gray-400">{' ' + '•' + ' '}</span>
-              <span className="text-sm text-gray-400">
-                {new Date(Number(message.timeSent)).toLocaleString('en-US')}
-              </span>
-            </div>
+            {message.eventName === 'chat' && (
+              <div
+                className={
+                  determineMessageStyle(user, message.userId, message.eventName)
+                    .sender
+                }
+              >
+                <span className="text-sm text-gray-400">
+                  {message.user?.userName}
+                </span>
+                <span className="text-sm text-gray-400">{' ' + '•' + ' '}</span>
+                <span className="text-sm text-gray-400">
+                  {new Date(Number(message.timeSent)).toLocaleString('en-US')}
+                </span>
+              </div>
+            )}
             <div
-              className={determineMessageStyle(user, message.userId).message}
+              className={
+                determineMessageStyle(user, message.userId, message.eventName)
+                  .message
+              }
             >
               <p className="text-white">{message.message}</p>
             </div>
-            {user && message.userId === user.userId && (
-              <p className="text-right text-xs text-gray-400 px-4">
-                {message.delivered ? 'Delivered' : 'Not delivered'}
-              </p>
-            )}
+            {message.eventName === 'chat' &&
+              user &&
+              message.userId === user.userId && (
+                <p className="text-right text-xs text-gray-400 px-4">
+                  {message.delivered ? 'Delivered' : 'Not delivered'}
+                </p>
+              )}
           </div>
         );
       })}
