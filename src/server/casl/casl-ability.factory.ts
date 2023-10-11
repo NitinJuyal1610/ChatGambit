@@ -6,6 +6,7 @@ import {
   MongoAbility,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
+import { UserId } from 'src/shared/interfaces/chat.interface';
 import { Room } from '../entities/room.entity';
 import { User } from '../entities/user.entity';
 
@@ -23,12 +24,12 @@ type FlatRoom = Room & {
 
 @Injectable()
 export class CaslAbilityFactory {
-  createForUser(user: User) {
+  createForUser(userId: UserId) {
     const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
     // Host can kick users from room
     can<FlatRoom>(Action.Kick, Room, {
-      'host.userId': user.userId,
+      'host.userId': userId,
     });
 
     // Any user can join any room
@@ -36,7 +37,7 @@ export class CaslAbilityFactory {
 
     // User can send messages in room given they are in the room
     can(Action.Message, Room, {
-      users: { $elemMatch: { userId: user.userId } },
+      users: { $elemMatch: { userId } },
     });
 
     return build({

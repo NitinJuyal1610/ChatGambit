@@ -11,7 +11,7 @@ import { UserOptionalDefaultsSchema } from './UserSchema';
 export const RoomSchema = z.object({
   id: z.number().int(),
   name: RoomNameSchema,
-  hostId: z.number().int().nullable(),
+  hostId: z.number().int(),
   host: UserOptionalDefaultsSchema.optional(),
   users: UserOptionalDefaultsSchema.array().optional(),
   chats: ChatOptionalDefaultsSchema.array().optional(),

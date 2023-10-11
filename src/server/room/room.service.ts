@@ -42,7 +42,7 @@ export class RoomService {
     return room;
   }
 
-  async getRoomByName(roomName: Room['name']): Promise<RoomType> {
+  async getRoomByName(roomName: Room['name']): Promise<RoomType | null> {
     const room = await this.prismaService.room.findUnique({
       where: {
         name: roomName,
@@ -57,12 +57,6 @@ export class RoomService {
         },
       },
     });
-
-    if (!room) {
-      throw new NotFoundException(`Room with name ${roomName} does not exist`);
-    }
-
-    console.log(room, 'returned room');
 
     return room;
   }

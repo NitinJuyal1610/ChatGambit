@@ -13,20 +13,17 @@ import { RoomService } from '../../room/room.service';
 import { PolicyHandler } from '../../casl/interfaces/policy.interface';
 import {
   ClientToServerEvents,
-  Room as RoomType,
-  SocketId,
-  User,
-  UserName,
+  UserId,
 } from '../../../shared/interfaces/chat.interface';
+import { Room } from 'src/server/entities/room.entity';
 
 import { ConflictException } from '@nestjs/common/exceptions/conflict.exception';
-import { UserService } from 'src/server/user/user.service';
 
 @Injectable()
 export class ChatPoliciesGuard<
   CtxData extends {
-    userId: string;
-    roomName: RoomType['name'];
+    userId: UserId;
+    roomName: Room['name'];
     eventName: keyof ClientToServerEvents;
   },
 > implements CanActivate
@@ -34,7 +31,6 @@ export class ChatPoliciesGuard<
   constructor(
     private caslAbilityFactory: CaslAbilityFactory,
     private roomService: RoomService,
-    private userService: UserService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -42,36 +38,53 @@ export class ChatPoliciesGuard<
     const ctx = context.switchToWs();
     const data = ctx.getData<CtxData>();
 
-    const user = await this.userService.getUserById(data.userId);
+    let roomInstance: Room; // Initialize with a default value
+
     const room = await this.roomService.getRoomByName(data.roomName);
 
-    // if (data.eventName === 'kick_user') {
-    //   if (!room) {
-    //     throw new ConflictException(
-    //       `Room must exist to evaluate ${data.eventName} policy`,
-    //     );
-    //   }
-    //   policyHandlers.push((ability) => ability.can(Action.Kick, room));
-    // }
+    if (room) {
+      roomInstance = new Room({
+        name: room.name,
+        hostId: room.hostId,
+        users: room.users,
+        host: room.host,
+      });
+    }
 
-    // if (data.eventName === 'join_room') {
-    //   policyHandlers.push((ability) => ability.can(Action.Join, room));
-    // }
+    if (data.eventName === 'kick_user') {
+      if (!room) {
+        throw new ConflictException(
+          `Room must exist to evaluate ${data.eventName} policy`,
+        );
+      }
+      policyHandlers.push((ability) => ability.can(Action.Kick, roomInstance));
+    }
 
-    // if (data.eventName === 'chat') {
-    //   if (!room) {
-    //     throw new ConflictException(
-    //       `Room must exist to evaluate ${data.eventName} policy`,
-    //     );
-    //   }
-    //   policyHandlers.push((ability) => ability.can(Action.Message, room));
-    // }
+    if (data.eventName === 'join_room') {
+      if (room) {
+        policyHandlers.push((ability) =>
+          ability.can(Action.Join, roomInstance),
+        );
+      }
+    }
 
-    const ability = this.caslAbilityFactory.createForUser(user);
+    if (data.eventName === 'chat') {
+      if (room) {
+        policyHandlers.push((ability) =>
+          ability.can(Action.Message, roomInstance),
+        );
+      } else {
+        throw new ConflictException(
+          `Room must exist to evaluate ${data.eventName} policy`,
+        );
+      }
+    }
+
+    const ability = this.caslAbilityFactory.createForUser(data.userId);
+
     policyHandlers.every((handler) => {
       const check = this.execPolicyHandler(handler, ability);
-
-      console.log(check, ability);
+      console.log(check);
       if (check === false) {
         throw new ForbiddenException();
       }

@@ -62,6 +62,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return true;
   }
 
+  @UseGuards(ChatPoliciesGuard<JoinRoom>)
   @UsePipes(new ZodValidationPipe(JoinRoomSchema))
   @SubscribeMessage('join_room')
   async handleSetClientDataEvent(

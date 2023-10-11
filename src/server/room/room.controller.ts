@@ -15,9 +15,8 @@ export class RoomController {
   }
 
   @Get('api/rooms/:room')
-  async getRoom(@Param() params): Promise<Room> {
+  async getRoom(@Param() params): Promise<Room | null> {
     const room = await this.roomService.getRoomByName(params.room);
-
     return room;
   }
 
