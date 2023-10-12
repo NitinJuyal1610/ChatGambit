@@ -71,4 +71,13 @@ export const ClientToServerEventsSchema = z.object({
 export const ServerToClientEventsSchema = z.object({
   chat: z.function().args(ChatMessageSchema).returns(z.void()),
   kick_user: z.function().args(KickUserSchema).returns(z.void()),
+  error: z
+    .function()
+    .args(
+      z.object({
+        status: z.number(),
+        message: z.string(),
+      }),
+    )
+    .returns(z.void()),
 });

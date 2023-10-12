@@ -4,8 +4,10 @@ import { MessageSchema } from '../../shared/schemas/utils.schema';
 
 export const MessageForm = ({
   sendMessage,
+  disabled,
 }: {
   sendMessage: (message: Message['message']) => void;
+  disabled: boolean;
 }) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,6 +33,7 @@ export const MessageForm = ({
           ref={textAreaRef}
           onKeyDown={(e) => handleKeyDown(e)}
           id="minput"
+          disabled={disabled}
           placeholder="Message"
           maxLength={MessageSchema?.maxLength ?? undefined}
           className="mb-2 max-h-16 flex-grow appearance-none rounded-md border-none bg-gray-800 text-white placeholder-slate-400 focus:outline-none focus:ring-transparent"

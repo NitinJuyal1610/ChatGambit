@@ -38,6 +38,7 @@ function Chat() {
   const [toggleUserList, setToggleUserList] = useState<boolean>(false);
   const [isJoinedRoom, setIsJoinedRoom] = useState(false);
   const [isJoiningDelay, setIsJoiningDelay] = useState(false);
+  const [error, setError] = useState('');
   const { data: room, refetch: roomRefetch } = useRoomQuery(
     roomName,
     isJoinedRoom,
@@ -85,6 +86,14 @@ function Chat() {
 
       socket.on('disconnect', () => {
         setIsConnected(false);
+      });
+
+      socket.on('error', (error) => {
+        setTimeout(() => {
+          setError('');
+        }, 3000);
+
+        console.log(error);
       });
 
       socket.on('chat', (e) => {
@@ -138,7 +147,7 @@ function Chat() {
         eventName: 'chat',
       };
       // Check if chat message passes schema check
-      console.log(chatMessage, 'message passed');
+
       try {
         ChatMessageSchema.parse(chatMessage);
       } catch (error) {
@@ -235,7 +244,11 @@ function Chat() {
           ) : (
             <Messages user={user} messages={messages}></Messages>
           )}
-          <MessageForm sendMessage={sendMessage}></MessageForm>
+          <MessageForm
+            sendMessage={sendMessage}
+            disabled={error.length > 0}
+          ></MessageForm>
+          <p className="p-2 text-pink-600 text-center font-bold">{error}</p>
         </ChatLayout>
       ) : (
         <LoadingLayout>

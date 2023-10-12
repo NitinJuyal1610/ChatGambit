@@ -6,7 +6,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Logger, UseGuards, UsePipes } from '@nestjs/common';
+import { Logger, UseFilters, UseGuards, UsePipes } from '@nestjs/common';
 import {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -26,14 +26,15 @@ import { UserService } from '../user/user.service';
 import { ChatPoliciesGuard } from './guards/chat.guard';
 import { WsThrottlerGuard } from './guards/throttler.guard';
 import { Throttle } from '@nestjs/throttler';
-import { User } from '../entities/user.entity';
 import { ChatService } from './chat.service';
+import { CustomExceptionFilter } from './chat.exceptionHandler';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
+@UseFilters(CustomExceptionFilter)
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private roomService: RoomService,
@@ -62,7 +63,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return true;
   }
 
-  @UseGuards(ChatPoliciesGuard<JoinRoom>)
   @UsePipes(new ZodValidationPipe(JoinRoomSchema))
   @SubscribeMessage('join_room')
   async handleSetClientDataEvent(
