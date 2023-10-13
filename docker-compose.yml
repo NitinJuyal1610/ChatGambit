@@ -1,7 +1,7 @@
 version: '3.8'
 services:
-  nest-api:
-    container_name: nest-api
+  chatgambit:
+    container_name: chatgambit
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,7 +16,7 @@ services:
       - nestjs_network
 
   postgres:
-    image: postgres
+    image: postgres:15
     container_name: postgres
     ports:
       - 5432:5432

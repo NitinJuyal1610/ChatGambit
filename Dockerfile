@@ -24,7 +24,6 @@ COPY --from=builder usr/src/app/dist ./dist
 
 RUN yarn install --production
 
-RUN rm package*.json
 EXPOSE 3000
 
-CMD ["node" ,"dist/server/server/main"]
+CMD ["yarn","run" ,"start:prodserver"]
