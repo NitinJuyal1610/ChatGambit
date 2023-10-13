@@ -30,6 +30,7 @@ ChatGambit is a modern and scalable chat application built using NestJS, TypeScr
   - TypeScript
   - Postgress SQL
   - Prisma ORM
+  - Docker & Docker Compose
 
 - Frontend:
 
@@ -45,7 +46,4 @@ To get started with ChatGambit, follow these steps:
 
 1. Clone the repository: `git clone https://github.com/NitinJuyal1610/ChatGambit`
 2. Navigate to the project directory: `cd chatgambit`
-3. Install dependencies: `yarn install`
-4. Start the development server: `yarn dev`
-
-Make sure to configure any necessary environment variables for your specific deployment.
+3. Build and run the docker container `docker compose up`
