@@ -89,6 +89,7 @@ function Chat() {
       });
 
       socket.on('error', (error) => {
+        setError(error.message);
         setTimeout(() => {
           setError('');
         }, 3000);
@@ -248,7 +249,9 @@ function Chat() {
             sendMessage={sendMessage}
             disabled={error.length > 0}
           ></MessageForm>
-          <p className="p-2 text-pink-600 text-center font-bold">{error}</p>
+          <p className="p-2 text-pink-600 text-center flex justify-center font-bold">
+            {error}
+          </p>
         </ChatLayout>
       ) : (
         <LoadingLayout>
