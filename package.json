@@ -14,7 +14,7 @@
     "build:server": "nest build",
     "start:server": "nest start",
     "dev:server": "nest start --watch",
-    "start:prodserver": "node dist/server/server/main"
+    "start:prodserver": "prisma migrate deploy && node dist/server/server/main"
   },
   "dependencies": {
     "@casl/ability": "^6.5.0",
