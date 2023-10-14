@@ -11,7 +11,7 @@ export class UserService {
 
   async addUser(user: User) {
     try {
-      console.log('create user ', user);
+    
       const newUser = await this.prismaService.user.create({
         data: {
           userId: user.userId,

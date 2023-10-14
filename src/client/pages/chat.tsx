@@ -63,7 +63,6 @@ function Chat() {
         try {
           JoinRoomSchema.parse(joinRoom);
         } catch (error) {
-          console.log(error);
           leaveRoom();
           return;
         }
@@ -93,8 +92,6 @@ function Chat() {
         setTimeout(() => {
           setError('');
         }, 3000);
-
-        console.log(error);
       });
 
       socket.on('chat', (e) => {
