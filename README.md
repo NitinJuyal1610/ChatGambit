@@ -40,6 +40,10 @@ ChatGambit is a modern and scalable chat application built using NestJS, TypeScr
 
 - Websockets for real-time communication
 
+## 🌐 Nginx Reverse Proxy
+
+The application is hosted behind an Nginx reverse proxy to enhance security and routing capabilities.
+
 ## 📦 Installation and Usage
 
 To get started with ChatGambit, follow these steps:
